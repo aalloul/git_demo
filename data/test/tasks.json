@@ -1,0 +1,31 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Python Task",
+      "description": "Learn Python",
+      "project_id": 1,
+      "priority": "MEDIUM",
+      "status": "todo",
+      "due_date": null,
+      "created_at": "2026-02-18T18:56:42.767403",
+      "completed_at": null,
+      "assigned_to": "alice",
+      "subtasks": []
+    },
+    {
+      "id": 2,
+      "title": "JavaScript Task",
+      "description": "Learn JS",
+      "project_id": 1,
+      "priority": "MEDIUM",
+      "status": "todo",
+      "due_date": null,
+      "created_at": "2026-02-18T18:56:42.767499",
+      "completed_at": null,
+      "assigned_to": null,
+      "subtasks": []
+    }
+  ],
+  "last_id": 2
+}

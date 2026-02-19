@@ -1,0 +1,19 @@
+# Task Manager Application Requirements
+# No external dependencies required for core functionality
+# These are optional development dependencies
+
+# Testing
+pytest>=7.0.0
+pytest-cov>=4.0.0
+
+# Code Quality
+flake8>=4.0.0
+black>=22.0.0
+pylint>=2.0.0
+
+# Documentation
+sphinx>=4.0.0
+
+# Development
+ipython>=8.0.0
+
