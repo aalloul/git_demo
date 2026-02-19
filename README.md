@@ -142,3 +142,7 @@ python -m unittest task_manager/test_manager.py -v
 
 MIT License
 
+### Contributor 
+
+Christophe
+Adam
