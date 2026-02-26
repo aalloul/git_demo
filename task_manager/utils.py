@@ -10,17 +10,25 @@ class DateUtils:
 
     @staticmethod
     def parse_date(date_string: str) -> datetime:
-        """Parse a date string in format YYYY-MM-DD."""
-        try:
-            return datetime.strptime(date_string, "%Y-%m-%d")
-        except ValueError:
-            raise ValueError(f"Invalid date format: {date_string}")
+        """Parse a date string supporting multiple formats."""
+        for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%m-%d-%Y"):
+            try:
+                return datetime.strptime(date_string, fmt)
+            except ValueError:
+                continue
+        raise ValueError(f"Unrecognised date format: {date_string}")
 
     @staticmethod
-    def days_until_due(due_date: datetime) -> int:
-        """Calculate days until a due date."""
+    def days_until_due(due_date: datetime) -> float:
+        """Calculate fractional days until a due date."""
         delta = due_date - datetime.now()
-        return delta.days
+        return delta.total_seconds() / 86400
+
+    @staticmethod
+    def is_due_soon(due_date: datetime, days_threshold: int = 3) -> bool:
+        """Check if a task is due within the given number of days."""
+        delta = due_date - datetime.now()
+        return 0 <= delta.days <= days_threshold
 
     @staticmethod
     def is_overdue(due_date: datetime) -> bool:
@@ -50,8 +58,8 @@ class ValidationUtils:
 
     @staticmethod
     def validate_username(username: str) -> bool:
-        """Validate username (alphanumeric and underscore, 3-20 chars)."""
-        pattern = r'^[a-zA-Z0-9_]{3,20}$'
+        """Validate username (alphanumeric and underscore, 3-30 chars)."""
+        pattern = r'^[a-zA-Z0-9_]{3,30}$'
         return re.match(pattern, username) is not None
 
     @staticmethod
@@ -64,7 +72,7 @@ class StringUtils:
     """Utilities for string operations."""
 
     @staticmethod
-    def truncate(text: str, max_length: int = 50, suffix: str = "...") -> str:
+    def truncate(text: str, max_length: int = 80, suffix: str = "...") -> str:
         """Truncate text to a maximum length."""
         if len(text) <= max_length:
             return text
@@ -75,7 +83,8 @@ class StringUtils:
         """Convert text to URL-friendly slug."""
         text = text.lower().strip()
         text = re.sub(r'[^\w\s-]', '', text)
-        text = re.sub(r'[-\s]+', '-', text)
+        text = re.sub(r'[\s_]+', '-', text)
+        text = re.sub(r'-{2,}', '-', text)
         return text
 
     @staticmethod

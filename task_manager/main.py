@@ -10,23 +10,23 @@ from task_manager.config import get_config
 def main():
     """Run the task manager application."""
     # Initialize configuration and database
-    config = get_config("development")
+    config = get_config("testing")
     db = Database(config.DATA_DIR)
     manager = TaskManager(db)
 
     # Set current user
-    manager.set_current_user("alice")
+    manager.set_current_user("charlie")
 
     # Create sample projects
     project1 = manager.create_project(
-        name="Website Redesign",
-        description="Redesign the company website with modern UI/UX",
-        owner="alice"
+        name="Website Overhaul",
+        description="Complete overhaul of the company website with modern stack",
+        owner="charlie"
     )
 
     project2 = manager.create_project(
-        name="Mobile App Development",
-        description="Develop a mobile app for task tracking",
+        name="Mobile App v2",
+        description="Second version of the mobile task tracking application",
         owner="bob"
     )
 
@@ -39,21 +39,21 @@ def main():
         title="Design mockups",
         description="Create UI mockups for the homepage",
         project_id=project1.id,
-        priority=TaskPriority.HIGH
+        priority=TaskPriority.CRITICAL
     )
 
     task2 = manager.create_task(
         title="Set up development environment",
         description="Install Node.js, npm packages, and configure build tools",
         project_id=project1.id,
-        priority=TaskPriority.MEDIUM
+        priority=TaskPriority.HIGH
     )
 
     task3 = manager.create_task(
         title="Fix responsive design issues",
         description="Ensure the website works on mobile devices",
         project_id=project1.id,
-        priority=TaskPriority.CRITICAL
+        priority=TaskPriority.MEDIUM
     )
 
     print(f"✓ Created task: {task1.title}")
@@ -109,12 +109,14 @@ def main():
         stats = manager.get_project_stats(project.id)
         if stats:
             print(f"📊 {stats['project_name']} Statistics:")
+            print(f"   Owner: {stats['owner']}")
             print(f"   Total tasks: {stats['total_tasks']}")
             print(f"   Completed: {stats['completed_tasks']}")
             print(f"   In progress: {stats['in_progress_tasks']}")
             print(f"   To do: {stats['todo_tasks']}")
             print(f"   Completion: {stats['completion_percentage']:.1f}%")
             print(f"   Team size: {stats['team_size']}")
+            print(f"   Archived: {stats['is_archived']}")
             print()
 
     # Display all tasks
@@ -133,16 +135,16 @@ def main():
     print()
 
     # Get my tasks
-    manager.set_current_user("alice")
+    manager.set_current_user("charlie")
     my_tasks = manager.get_my_tasks()
-    print(f"👤 Alice's Tasks ({len(my_tasks)}):")
+    print(f"👤 Charlie's Tasks ({len(my_tasks)}):")
     for task in my_tasks:
         print(f"   - {task.title}")
     print()
 
     # Get my projects
     my_projects = manager.get_my_projects()
-    print(f"📂 Alice's Projects ({len(my_projects)}):")
+    print(f"📂 Charlie's Projects ({len(my_projects)}):")
     for project in my_projects:
         print(f"   - {project.name}")
 

@@ -1,8 +1,8 @@
-"""Data models for the task manager application."""
+"""Data models for the task manager application - v2."""
 
 from enum import Enum
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Dict
 
 
 class TaskStatus(Enum):
@@ -15,10 +15,10 @@ class TaskStatus(Enum):
 
 class TaskPriority(Enum):
     """Enumeration of task priorities."""
-    LOW = 1
-    MEDIUM = 2
-    HIGH = 3
-    CRITICAL = 4
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    CRITICAL = "critical"
 
 
 class Task:
@@ -29,7 +29,7 @@ class Task:
         title: str,
         description: str,
         project_id: int,
-        priority: TaskPriority = TaskPriority.MEDIUM,
+        priority: TaskPriority = TaskPriority.LOW,
         due_date: Optional[datetime] = None,
         task_id: Optional[int] = None
     ):
@@ -42,18 +42,22 @@ class Task:
         self.status = TaskStatus.TODO
         self.due_date = due_date
         self.created_at = datetime.now()
+        self.updated_at: Optional[datetime] = None
         self.completed_at: Optional[datetime] = None
         self.assigned_to: Optional[str] = None
+        self.tags: List[str] = []
         self.subtasks: List['Task'] = []
 
     def mark_completed(self) -> None:
-        """Mark the task as completed."""
+        """Mark the task as completed and record the timestamp."""
         self.status = TaskStatus.COMPLETED
         self.completed_at = datetime.now()
+        self.updated_at = datetime.now()
 
     def mark_in_progress(self) -> None:
-        """Mark the task as in progress."""
+        """Transition the task to in-progress state."""
         self.status = TaskStatus.IN_PROGRESS
+        self.updated_at = datetime.now()
 
     def assign_to(self, user_name: str) -> None:
         """Assign the task to a user."""
@@ -70,18 +74,20 @@ class Task:
             'title': self.title,
             'description': self.description,
             'project_id': self.project_id,
-            'priority': self.priority.name,
+            'priority': self.priority.value,
             'status': self.status.value,
             'due_date': self.due_date.isoformat() if self.due_date else None,
             'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
             'completed_at': self.completed_at.isoformat() if self.completed_at else None,
             'assigned_to': self.assigned_to,
+            'tags': self.tags,
             'subtasks': [st.to_dict() for st in self.subtasks]
         }
 
     def __repr__(self) -> str:
         """String representation of the task."""
-        return f"Task(id={self.id}, title='{self.title}', status={self.status.value})"
+        return f"Task(id={self.id}, title='{self.title}', priority={self.priority.value}, status={self.status.value})"
 
 
 class Project:
@@ -102,7 +108,9 @@ class Project:
         self.created_at = datetime.now()
         self.tasks: List[Task] = []
         self.members: List[str] = [owner]
+        self.max_members: int = 10
         self.archived = False
+        self.tags: List[str] = []
 
     def add_task(self, task: Task) -> None:
         """Add a task to the project."""
@@ -111,7 +119,7 @@ class Project:
 
     def add_member(self, member_name: str) -> None:
         """Add a team member to the project."""
-        if member_name not in self.members:
+        if member_name not in self.members and len(self.members) < self.max_members:
             self.members.append(member_name)
 
     def remove_member(self, member_name: str) -> None:
@@ -143,8 +151,10 @@ class Project:
             'owner': self.owner,
             'created_at': self.created_at.isoformat(),
             'members': self.members,
+            'max_members': self.max_members,
             'tasks': [task.to_dict() for task in self.tasks],
             'archived': self.archived,
+            'tags': self.tags,
             'completion_rate': self.get_completion_rate()
         }
 

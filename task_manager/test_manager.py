@@ -17,20 +17,22 @@ class TestTask(unittest.TestCase):
             title="Test Task",
             description="A test task",
             project_id=1,
-            priority=TaskPriority.MEDIUM
+            priority=TaskPriority.HIGH
         )
 
     def test_task_creation(self):
-        """Test task can be created."""
+        """Test task can be created with correct defaults."""
         self.assertEqual(self.task.title, "Test Task")
         self.assertEqual(self.task.status, TaskStatus.TODO)
-        self.assertEqual(self.task.priority, TaskPriority.MEDIUM)
+        self.assertEqual(self.task.priority, TaskPriority.HIGH)
+        self.assertIsNone(self.task.updated_at)
 
     def test_mark_completed(self):
-        """Test marking task as completed."""
+        """Test marking task as completed sets both timestamps."""
         self.task.mark_completed()
         self.assertEqual(self.task.status, TaskStatus.COMPLETED)
         self.assertIsNotNone(self.task.completed_at)
+        self.assertIsNotNone(self.task.updated_at)
 
     def test_mark_in_progress(self):
         """Test marking task as in progress."""
@@ -47,6 +49,8 @@ class TestTask(unittest.TestCase):
         task_dict = self.task.to_dict()
         self.assertEqual(task_dict['title'], "Test Task")
         self.assertEqual(task_dict['status'], "todo")
+        self.assertEqual(task_dict['priority'], "high")
+        self.assertIn('tags', task_dict)
 
 
 class TestProject(unittest.TestCase):
@@ -142,12 +146,12 @@ class TestTaskManager(unittest.TestCase):
         self.db = Database("./data/test")
         self.db.clear_all()
         self.manager = TaskManager(self.db)
-        self.manager.set_current_user("alice")
+        self.manager.set_current_user("charlie")
 
     def test_create_project(self):
         """Test creating a project through manager."""
         project = self.manager.create_project("Test", "Desc")
-        self.assertEqual(project.owner, "alice")
+        self.assertEqual(project.owner, "charlie")
 
     def test_search_tasks(self):
         """Test searching tasks."""
@@ -163,11 +167,14 @@ class TestDateUtils(unittest.TestCase):
     """Test cases for DateUtils."""
 
     def test_parse_date(self):
-        """Test parsing date string."""
+        """Test parsing date string in multiple formats."""
         date = DateUtils.parse_date("2024-12-25")
         self.assertEqual(date.year, 2024)
         self.assertEqual(date.month, 12)
         self.assertEqual(date.day, 25)
+        date2 = DateUtils.parse_date("25/12/2024")
+        self.assertEqual(date2.day, 25)
+        self.assertEqual(date2.month, 12)
 
     def test_format_date(self):
         """Test formatting date."""
@@ -185,9 +192,10 @@ class TestValidationUtils(unittest.TestCase):
         self.assertFalse(ValidationUtils.validate_email("invalid-email"))
 
     def test_validate_username(self):
-        """Test username validation."""
+        """Test username validation (3-30 chars)."""
         self.assertTrue(ValidationUtils.validate_username("user123"))
         self.assertFalse(ValidationUtils.validate_username("ab"))
+        self.assertTrue(ValidationUtils.validate_username("a_valid_long_username_1234567"))
 
 
 class TestStringUtils(unittest.TestCase):
@@ -199,6 +207,8 @@ class TestStringUtils(unittest.TestCase):
         truncated = StringUtils.truncate(text, max_length=10)
         self.assertEqual(len(truncated), 10)
         self.assertTrue(truncated.endswith("..."))
+        short = StringUtils.truncate("hi", max_length=80)
+        self.assertEqual(short, "hi")
 
     def test_to_slug(self):
         """Test converting to slug."""

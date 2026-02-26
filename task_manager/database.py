@@ -1,4 +1,4 @@
-"""Database module for persisting task and project data."""
+"""Database module for persisting task and project data to disk."""
 
 import json
 import os
@@ -10,7 +10,9 @@ from datetime import datetime
 class Database:
     """Manages persistence of tasks and projects to JSON files."""
 
-    def __init__(self, data_dir: str = "./data"):
+    DEFAULT_DATA_DIR = "./data"
+
+    def __init__(self, data_dir: str = "./data/dev"):
         """Initialize the database with a data directory."""
         self.data_dir = data_dir
         self.projects_file = os.path.join(data_dir, "projects.json")
@@ -20,6 +22,7 @@ class Database:
         self.tasks: Dict[int, Task] = {}
         self._next_project_id = 1
         self._next_task_id = 1
+        self._write_count = 0
 
     def _ensure_data_dir(self) -> None:
         """Ensure the data directory exists."""
@@ -143,19 +146,23 @@ class Database:
         """Save projects to JSON file."""
         data = {
             'projects': [project.to_dict() for project in self.projects.values()],
-            'last_id': self._next_project_id - 1
+            'last_id': self._next_project_id - 1,
+            'count': len(self.projects)
         }
         with open(self.projects_file, 'w') as f:
-            json.dump(data, f, indent=2, default=str)
+            json.dump(data, f, indent=4, default=str)
+        self._write_count += 1
 
     def save_tasks(self) -> None:
         """Save tasks to JSON file."""
         data = {
             'tasks': [task.to_dict() for task in self.tasks.values()],
-            'last_id': self._next_task_id - 1
+            'last_id': self._next_task_id - 1,
+            'count': len(self.tasks)
         }
         with open(self.tasks_file, 'w') as f:
-            json.dump(data, f, indent=2, default=str)
+            json.dump(data, f, indent=4, default=str)
+        self._write_count += 1
 
     def load_projects(self) -> bool:
         """Load projects from JSON file."""
@@ -186,8 +193,9 @@ class Database:
             return False
 
     def clear_all(self) -> None:
-        """Clear all data from memory."""
+        """Clear all data from memory and reset counters."""
         self.projects.clear()
         self.tasks.clear()
         self._next_project_id = 1
         self._next_task_id = 1
+        self._write_count = 0

@@ -8,8 +8,8 @@ class Config:
     """Base configuration class."""
 
     # Application settings
-    APP_NAME = "Task Manager"
-    APP_VERSION = "1.0.0"
+    APP_NAME = "Task Manager Pro"
+    APP_VERSION = "2.0.0"
     DEBUG = False
     TESTING = False
 
@@ -19,13 +19,14 @@ class Config:
     TASKS_FILE = "tasks.json"
 
     # UI settings
-    ITEMS_PER_PAGE = 20
-    DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+    ITEMS_PER_PAGE = 50
+    DATE_FORMAT = "%d/%m/%Y %H:%M"
 
     # Notification settings
     ENABLE_NOTIFICATIONS = True
     NOTIFY_OVERDUE_TASKS = True
     NOTIFY_DUE_TODAY = True
+    NOTIFICATION_CHANNEL = "email"
 
     @classmethod
     def get_database_path(cls) -> str:
@@ -46,6 +47,7 @@ class DevelopmentConfig(Config):
     """Development configuration."""
     DEBUG = True
     DATA_DIR = "./data/dev"
+    LOG_LEVEL = "DEBUG"
 
 
 class TestingConfig(Config):
@@ -58,15 +60,16 @@ class TestingConfig(Config):
 class ProductionConfig(Config):
     """Production configuration."""
     DEBUG = False
-    DATA_DIR = "/var/lib/task_manager/data"
+    DATA_DIR = "/opt/task_manager/data"
+    LOG_LEVEL = "WARNING"
 
 
-def get_config(environment: str = "development") -> Config:
+def get_config(environment: str = "production") -> Config:
     """Get configuration object based on environment."""
     configs = {
         "development": DevelopmentConfig,
         "testing": TestingConfig,
         "production": ProductionConfig
     }
-    return configs.get(environment, DevelopmentConfig)
+    return configs.get(environment, ProductionConfig)
 

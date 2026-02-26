@@ -1,6 +1,6 @@
-# Task Manager Application
+# Task Manager Pro
 
-A comprehensive task management system built in Python with multiple interconnected modules.
+A comprehensive task management system built in Python with multiple interconnected modules. Version 2.0 introduces priority-based workflows and team size limits.
 
 ## Project Structure
 
@@ -59,14 +59,15 @@ pip install -r requirements.txt
 from task_manager import TaskManager, Database
 
 # Initialize
-db = Database("./data")
+db = Database("./data/dev")
 manager = TaskManager(db)
-manager.set_current_user("alice")
+manager.set_current_user("charlie")
 
 # Create project
 project = manager.create_project(
     name="My Project",
-    description="Project description"
+    description="Project description",
+    owner="charlie"
 )
 
 # Create task
@@ -74,15 +75,16 @@ task = manager.create_task(
     title="My Task",
     description="Task description",
     project_id=project.id,
-    priority=TaskPriority.HIGH
+    priority=TaskPriority.CRITICAL
 )
 
 # Manage tasks
-manager.complete_task(task.id)
 manager.assign_task(task.id, "bob")
+manager.complete_task(task.id)
 
 # Get statistics
 stats = manager.get_project_stats(project.id)
+print(f"Owner: {stats['owner']}")
 print(f"Completion: {stats['completion_percentage']}%")
 ```
 
@@ -115,15 +117,15 @@ config = get_config("development")
 
 ### TaskManager Methods
 - `create_project(name, description, owner)`: Create new project
-- `create_task(title, description, project_id, priority)`: Create new task
+- `create_task(title, description, project_id, priority)`: Create new task (default: HIGH)
 - `get_my_projects()`: Get current user's projects
 - `get_my_tasks()`: Get current user's tasks
-- `get_high_priority_tasks()`: Get urgent tasks
+- `get_high_priority_tasks()`: Get CRITICAL priority tasks only
 - `get_overdue_tasks()`: Get tasks past due date
 - `complete_task(task_id)`: Mark task as completed
 - `assign_task(task_id, user_name)`: Assign task to user
-- `get_project_stats(project_id)`: Get project statistics
-- `search_tasks(keyword)`: Search by keyword
+- `get_project_stats(project_id)`: Get project statistics (includes owner, is_archived)
+- `search_tasks(keyword)`: Search by keyword in title, description, or assignee
 
 ## Testing
 

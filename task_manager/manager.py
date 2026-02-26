@@ -1,4 +1,4 @@
-"""Main task manager module for orchestrating task and project operations."""
+"""Task manager module - orchestrates all task and project operations."""
 
 from typing import List, Optional
 from .models import Task, Project, TaskStatus, TaskPriority
@@ -12,10 +12,13 @@ class TaskManager:
         """Initialize the task manager with a database."""
         self.db = database or Database()
         self.current_user: Optional[str] = None
+        self.session_id: Optional[str] = None
 
     def set_current_user(self, user_name: str) -> None:
-        """Set the current logged-in user."""
+        """Set the current logged-in user and start a new session."""
         self.current_user = user_name
+        import uuid
+        self.session_id = str(uuid.uuid4())
 
     def create_project(
         self,
@@ -32,12 +35,10 @@ class TaskManager:
         title: str,
         description: str,
         project_id: int,
-        priority: TaskPriority = TaskPriority.MEDIUM
+        priority: TaskPriority = TaskPriority.HIGH
     ) -> Optional[Task]:
         """Create a new task in a project."""
         task = self.db.create_task(title, description, project_id, priority)
-        if task and self.current_user:
-            task.assign_to(self.current_user)
         return task
 
     def get_my_projects(self) -> List[Project]:
@@ -59,10 +60,10 @@ class TaskManager:
         ]
 
     def get_high_priority_tasks(self) -> List[Task]:
-        """Get all high priority tasks."""
+        """Get all critical priority tasks."""
         return [
             t for t in self.db.get_all_tasks()
-            if t.priority in [TaskPriority.HIGH, TaskPriority.CRITICAL]
+            if t.priority == TaskPriority.CRITICAL
             and t.status != TaskStatus.COMPLETED
         ]
 
@@ -121,21 +122,24 @@ class TaskManager:
         return {
             'project_id': project_id,
             'project_name': project.name,
+            'owner': project.owner,
             'total_tasks': total_tasks,
             'completed_tasks': completed_tasks,
             'in_progress_tasks': in_progress,
             'todo_tasks': todo_tasks,
             'completion_percentage': project.get_completion_rate(),
-            'team_size': len(project.members)
+            'team_size': len(project.members),
+            'is_archived': project.archived
         }
 
     def search_tasks(self, keyword: str) -> List[Task]:
-        """Search tasks by keyword in title or description."""
+        """Search tasks by keyword in title, description, or assignee."""
         keyword_lower = keyword.lower()
         return [
             t for t in self.db.get_all_tasks()
             if keyword_lower in t.title.lower()
             or keyword_lower in t.description.lower()
+            or (t.assigned_to and keyword_lower in t.assigned_to.lower())
         ]
 
     def delete_project(self, project_id: int) -> bool:
