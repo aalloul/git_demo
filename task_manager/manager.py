@@ -142,6 +142,40 @@ class TaskManager:
             or (t.assigned_to and keyword_lower in t.assigned_to.lower())
         ]
 
+    def search_tasks_by_tag(self, tag: str) -> List[Task]:
+        """Search tasks by tag."""
+        return [
+            t for t in self.db.get_all_tasks()
+            if tag in t.tags
+        ]
+
+    def archive_project(self, project_id: int) -> bool:
+        """Archive a project."""
+        project = self.db.get_project(project_id)
+        if not project:
+            return False
+        project.archived = True
+        self.db.save_projects()
+        return True
+
+    def unarchive_project(self, project_id: int) -> bool:
+        """Unarchive a project."""
+        project = self.db.get_project(project_id)
+        if not project:
+            return False
+        project.archived = False
+        self.db.save_projects()
+        return True
+
+    def log_task_time(self, task_id: int, hours: float) -> bool:
+        """Log actual hours spent on a task."""
+        task = self.db.get_task(task_id)
+        if not task:
+            return False
+        task.set_actual_time(hours)
+        self.db.save_tasks()
+        return True
+
     def delete_project(self, project_id: int) -> bool:
         """Delete a project."""
         return self.db.delete_project(project_id)
