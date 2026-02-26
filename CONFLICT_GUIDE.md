@@ -211,4 +211,3 @@ python task_manager/main.py
 ---
 
 This structure ensures that learning conflict resolution is realistic and comprehensive!
-
