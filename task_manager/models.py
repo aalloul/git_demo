@@ -63,6 +63,23 @@ class Task:
         """Add a subtask to this task."""
         self.subtasks.append(subtask)
 
+    def add_tag(self, tag: str) -> None:
+        """Add a tag to the task."""
+        if tag not in self.tags:
+            self.tags.append(tag)
+
+    def add_comment(self, comment: str) -> None:
+        """Add a comment to the task."""
+        self.comments.append(comment)
+
+    def set_time_estimate(self, hours: float) -> None:
+        """Set the estimated hours for this task."""
+        self.estimated_hours = hours
+
+    def set_actual_time(self, hours: float) -> None:
+        """Set the actual hours spent on this task."""
+        self.actual_hours = hours
+
     def to_dict(self) -> dict:
         """Convert task to dictionary representation."""
         return {
@@ -76,7 +93,11 @@ class Task:
             'created_at': self.created_at.isoformat(),
             'completed_at': self.completed_at.isoformat() if self.completed_at else None,
             'assigned_to': self.assigned_to,
-            'subtasks': [st.to_dict() for st in self.subtasks]
+            'subtasks': [st.to_dict() for st in self.subtasks],
+            'tags': self.tags,
+            'comments': self.comments,
+            'estimated_hours': self.estimated_hours,
+            'actual_hours': self.actual_hours
         }
 
     def __repr__(self) -> str:
@@ -92,7 +113,8 @@ class Project:
         name: str,
         description: str,
         owner: str,
-        project_id: Optional[int] = None
+        project_id: Optional[int] = None,
+        status: str = "active"
     ):
         """Initialize a new project."""
         self.id = project_id
@@ -103,6 +125,10 @@ class Project:
         self.tasks: List[Task] = []
         self.members: List[str] = [owner]
         self.archived = False
+        self.status = status
+        self.start_date: Optional[datetime] = None
+        self.end_date: Optional[datetime] = None
+        self.budget: Optional[float] = None
 
     def add_task(self, task: Task) -> None:
         """Add a task to the project."""
@@ -126,6 +152,18 @@ class Project:
     def get_tasks_by_priority(self, priority: TaskPriority) -> List[Task]:
         """Get all tasks with a specific priority."""
         return [task for task in self.tasks if task.priority == priority]
+
+    def get_high_priority_tasks(self) -> List[Task]:
+        """Get all high priority and critical tasks."""
+        return [
+            task for task in self.tasks
+            if task.priority in [TaskPriority.HIGH, TaskPriority.CRITICAL]
+            and task.status != TaskStatus.COMPLETED
+        ]
+
+    def get_tagged_tasks(self, tag: str) -> List[Task]:
+        """Get all tasks with a specific tag."""
+        return [task for task in self.tasks if tag in task.tags]
 
     def get_completion_rate(self) -> float:
         """Get the percentage of completed tasks."""

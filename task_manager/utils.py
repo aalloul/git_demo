@@ -108,3 +108,64 @@ class ListUtils:
                 result.append(item)
         return result
 
+
+class TimeUtils:
+    """Utilities for time and duration operations."""
+
+    @staticmethod
+    def format_duration(hours: float) -> str:
+        """Format hours as a readable duration string."""
+        if hours < 1:
+            minutes = int(hours * 60)
+            return f"{minutes}m"
+        elif hours == int(hours):
+            return f"{int(hours)}h"
+        else:
+            h = int(hours)
+            m = int((hours - h) * 60)
+            return f"{h}h {m}m"
+
+    @staticmethod
+    def hours_to_minutes(hours: float) -> int:
+        """Convert hours to minutes."""
+        return int(hours * 60)
+
+    @staticmethod
+    def minutes_to_hours(minutes: int) -> float:
+        """Convert minutes to hours."""
+        return minutes / 60
+
+    @staticmethod
+    def calculate_time_difference(start_date: datetime, end_date: datetime) -> dict:
+        """Calculate the difference between two dates."""
+        delta = end_date - start_date
+        return {
+            'days': delta.days,
+            'hours': delta.seconds // 3600,
+            'minutes': (delta.seconds % 3600) // 60,
+            'total_hours': delta.total_seconds() / 3600
+        }
+
+
+class TagUtils:
+    """Utilities for tag management and operations."""
+
+    @staticmethod
+    def normalize_tag(tag: str) -> str:
+        """Normalize a tag (lowercase, strip whitespace)."""
+        return tag.lower().strip()
+
+    @staticmethod
+    def validate_tag(tag: str) -> bool:
+        """Validate if a tag is valid."""
+        if not tag or len(tag) > 50:
+            return False
+        return all(c.isalnum() or c in ['-', '_'] for c in tag)
+
+    @staticmethod
+    def parse_tags(tag_string: str) -> List[str]:
+        """Parse a comma or space-separated string of tags."""
+        tags = re.split(r'[,\s]+', tag_string.strip())
+        return [TagUtils.normalize_tag(tag) for tag in tags if tag]
+
+

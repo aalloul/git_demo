@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from task_manager import TaskManager, Database
 from task_manager.models import TaskPriority
 from task_manager.config import get_config
+from task_manager.utils import TimeUtils, TagUtils
 
 
 def main():
@@ -34,26 +35,29 @@ def main():
     print(f"✓ Created project: {project2.name} (ID: {project2.id})")
     print()
 
-    # Create tasks for project 1
+    # Create tasks for project 1 with tags
     task1 = manager.create_task(
         title="Design mockups",
         description="Create UI mockups for the homepage",
         project_id=project1.id,
-        priority=TaskPriority.HIGH
+        priority=TaskPriority.HIGH,
+        tags=["design", "ui"]
     )
 
     task2 = manager.create_task(
         title="Set up development environment",
         description="Install Node.js, npm packages, and configure build tools",
         project_id=project1.id,
-        priority=TaskPriority.MEDIUM
+        priority=TaskPriority.MEDIUM,
+        tags=["setup", "backend"]
     )
 
     task3 = manager.create_task(
         title="Fix responsive design issues",
         description="Ensure the website works on mobile devices",
         project_id=project1.id,
-        priority=TaskPriority.CRITICAL
+        priority=TaskPriority.CRITICAL,
+        tags=["design", "mobile"]
     )
 
     print(f"✓ Created task: {task1.title}")
@@ -66,18 +70,33 @@ def main():
         title="Design database schema",
         description="Plan the database structure for the mobile app",
         project_id=project2.id,
-        priority=TaskPriority.HIGH
+        priority=TaskPriority.HIGH,
+        tags=["database", "backend"]
     )
 
     task5 = manager.create_task(
         title="Implement user authentication",
         description="Add login and registration functionality",
         project_id=project2.id,
-        priority=TaskPriority.CRITICAL
+        priority=TaskPriority.CRITICAL,
+        tags=["auth", "security"]
     )
 
     print(f"✓ Created task: {task4.title}")
     print(f"✓ Created task: {task5.title}")
+    print()
+
+    # Add time estimates and log actual time
+    if task1:
+        task1.set_time_estimate(8.5)
+        manager.log_task_time(task1.id, 6.0)
+    if task2:
+        task2.set_time_estimate(4.0)
+        manager.log_task_time(task2.id, 4.5)
+    if task3:
+        task3.set_time_estimate(5.0)
+
+    print("✓ Added time estimates and logged actual hours")
     print()
 
     # Add team members
@@ -93,6 +112,7 @@ def main():
     if task1:
         manager.assign_task(task1.id, "bob")
         task1.mark_in_progress()
+        task1.add_comment("Mockups approved by product team")
 
     if task2:
         manager.assign_task(task2.id, "charlie")
@@ -117,11 +137,28 @@ def main():
             print(f"   Team size: {stats['team_size']}")
             print()
 
+    # Display tasks with time tracking
+    print("⏱️  Tasks with Time Tracking:")
+    for task in manager.db.get_all_tasks():
+        if task.estimated_hours or task.actual_hours:
+            estimated = TimeUtils.format_duration(task.estimated_hours) if task.estimated_hours else "N/A"
+            actual = TimeUtils.format_duration(task.actual_hours) if task.actual_hours else "Not logged"
+            print(f"   - {task.title}: Est. {estimated} | Actual {actual}")
+    print()
+
+    # Search tasks by tag
+    design_tasks = manager.search_tasks_by_tag("design")
+    print(f"🏷️  Design Tasks ({len(design_tasks)}):")
+    for task in design_tasks:
+        print(f"   - {task.title}")
+    print()
+
     # Display all tasks
     print("📝 All Tasks:")
     for task in manager.db.get_all_tasks():
         status_icon = "✓" if task.status.value == "completed" else "○"
-        print(f"   {status_icon} [{task.priority.name}] {task.title} "
+        tag_str = f" [{', '.join(task.tags)}]" if task.tags else ""
+        print(f"   {status_icon} [{task.priority.name}] {task.title}{tag_str} "
               f"(Project ID: {task.project_id}, Assigned to: {task.assigned_to})")
     print()
 
@@ -145,6 +182,14 @@ def main():
     print(f"📂 Alice's Projects ({len(my_projects)}):")
     for project in my_projects:
         print(f"   - {project.name}")
+    print()
+
+    # Archive project example
+    print("📦 Archiving operations:")
+    manager.archive_project(project1.id)
+    print(f"✓ Archived {project1.name}")
+    manager.unarchive_project(project1.id)
+    print(f"✓ Unarchived {project1.name}")
 
 
 if __name__ == "__main__":
